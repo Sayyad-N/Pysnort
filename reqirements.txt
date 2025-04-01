@@ -1,0 +1,10 @@
+subprocess
+shutil
+sys
+google.generativeai 
+logging
+colorama 
+argparse
+os
+time
+re
