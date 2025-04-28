@@ -21,13 +21,15 @@ Pysnort is a Python-based tool designed to simplify the management of the Snort 
 -   **Configuration Testing:** Tests the Snort configuration file for errors.
 -   **AI Assistance:** Provides AI-powered help using Google Gemini for troubleshooting.
 -   **Command-Line Options:** Supports standard Snort command-line options.
+-   **AI Assistance Files (Beta)** Will Help You In Snort Rules and Files 
 
 ## Prerequisites
 
 -   Python 3.6+
 -   Root privileges (for installation, configuration, and rule updates)
--   `colorama` library: `pip install colorama`
--   `google-generativeai` library: `pip install google-generativeai`
+-   `colorama` a`
+-   `google-generativeai`
+-   `google-gena`
 -   Snort (if not installing via this script)
 -   Oinkmaster (for rule updates)
 -   A Google Gemini API key
@@ -49,7 +51,7 @@ Pysnort is a Python-based tool designed to simplify the management of the Snort 
 
 3.  **Set up Google Gemini API Key:**
 
-    -   Obtain a Google Gemini API key from [Google AI Studio](https://makersuite.google.com/).
+    -   Obtain a Google Gemini API key (Aleardy Added).
     -   Set the `api_key` variable (Already Added ) in the `pysnort.py` file:
 
         ```python
@@ -85,6 +87,7 @@ Pysnort is a Python-based tool designed to simplify the management of the Snort 
         9. View Snort Logs - Displays the last 10 lines of the Snort log file.
         10. Search Snort Logs - Searches the Snort log file for a specific string.
         11. Rule Management - List, view, and delete Snort rules from local.rules. (Requires Root)
+        12. Monitor snort alerts ai
         0. Exit
     ```
 
@@ -96,6 +99,7 @@ Pysnort is a Python-based tool designed to simplify the management of the Snort 
     usage: pysnort.py [-h] [-A ALERT_MODE] [-b] [-c RULES_FILE] [-C] [-d]
                        [-D] [-e] [-i INTERFACE] [-l LOG_DIR] [-s] [-T] [-v]
                        [-V] [-x] [-n PACKET_COUNT] [-q] [-Q] [-r PCAP_FILE]
+                        [--log]
 
     Snort Intrusion Detection System - Made by SayyadN
 
@@ -125,6 +129,8 @@ Pysnort is a Python-based tool designed to simplify the management of the Snort 
       -Q, --queue-event     Include queue event
       -r PCAP_FILE, --pcap PCAP_FILE
                             Read packets from pcap file
+    --log
+        monitor snort alerts by ai
     ```
 
     Example:
@@ -194,6 +200,11 @@ Pysnort is a Python-based tool designed to simplify the management of the Snort 
 -   Provides options to list, view, and delete Snort rules from `local.rules`.
 -   Requires root privileges.
 
+### 12.Monitor Snort Alerts
+-  Monter Alerts using Ai
+-  Second AI Called Gamma 27b
+-  Alert: Not Tested Yep (You tell me <3)
+
 ## Error Handling and AI Assistance
 
 -   The script includes comprehensive error handling for common issues, such as missing dependencies, incorrect permissions, and invalid input.
@@ -214,4 +225,4 @@ SayyadN
 
 ## Version
 
-1.0 (Date: 2025-04-01)
+1.1 (Date: 2025-04-27)
