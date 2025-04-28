@@ -2,20 +2,24 @@
 # Code Written For Educational Purposes Only
 # Do Not Use This Code For Malicious Purposes
 # This code is a base of a Snort intrusion detection system using Python.
-# Version 1.0
-# Date: 2025-04-01
+# Version 1.1
+# Date: 2025-04-28
 
 # Import necessary libraries
 import subprocess
 import shutil
 import sys
-import google.generativeai as GenAI
+import google.generativeai as GenAI  # (Problem Assitant)
 import logging
 from colorama import Fore, Back, init
 import argparse
 import os
 import time  # For animations
 import re # Regular expressions for rule validation
+#For Custome Ai Model Called Gamma 3-12B (Snort Assitant)
+import base64
+from google import genai
+from google.genai import types
 
 # Initialize colorama
 init(autoreset=True)
@@ -512,6 +516,114 @@ def delete_snort_rule(rules_file):
         p(f"Error deleting Snort rule: {e}")
         ai_help(str(e))
 
+# Define snort_assistant function
+def snort_assistant(alert_text):
+    # Configure Logging
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+    # Configure Google Gemini API Key
+    genai.configure(api_key="AIzaSyA9kraEIMqh2_vI0DQ1nbeGLJDHGMPPoe0")
+    """ Function to send Snort alerts to Gemini for analysis """
+    
+    client = genai.Client(
+        vertexai=True,
+        project="",
+        location="",
+    )
+
+    model = "gemma-3-27b-it"  # Your model name
+    contents = [
+        types.Content(
+            role="user",
+            parts=[
+                types.Part.from_text(text="""\"You are a cybersecurity analyst specializing in network security monitoring. You are highly experienced in using Snort, a Network Intrusion Detection System (NIDS).
+
+Your tasks:
+
+Analyze Snort alerts and explain them like a real security professional.
+
+Classify each alert based on its severity (low, medium, high, critical).
+
+Suggest possible attack types (e.g., port scan, SQL injection, DDoS, etc).
+
+Recommend next steps (block IP, investigate further, ignore false positive, escalate incident).
+
+Think methodically: source IP, destination IP, ports, protocol, payload if available.
+
+Reference common frameworks (MITRE ATT&CK, CVEs) if needed.
+
+Your behavior:
+
+Use technical but clear language.
+
+Be logical, cautious, and detail-oriented like a real SOC analyst.
+
+Always validate whether an alert is a true positive or a false positive.
+
+Snort alert example format you will analyze:
+[**] [Priority: 1] {TCP} 192.168.1.5:56789 -> 10.0.0.1:80
+Message: "ET WEB_SERVER Possible SQL Injection Attempt"
+
+Always act professionally and prioritize protecting the network.\""""),
+            ],
+        ),
+        types.Content(
+            role="model",
+            parts=[
+                types.Part.from_text(text="""Okay, I understand. I'm ready to act as a cybersecurity analyst specializing in network security monitoring using Snort. I will analyze provided alerts, classify them, suggest attack types, and recommend next steps, all while maintaining a professional and cautious approach. I will prioritize network protection and strive to provide actionable intelligence.
+
+Bring on the Snort alerts! I'm prepared to dissect them. I'll be looking for patterns, anomalies, and indicators of compromise. I'll also be mindful of the possibility of false positives and will suggest validation steps accordingly.
+
+Let's begin. I'm awaiting the first alert.
+"""),
+            ],
+        ),
+        types.Content(
+            role="user",
+            parts=[types.Part.from_text(text=alert_text)],
+        ),
+    ]
+
+    generate_content_config = types.GenerateContentConfig(response_mime_type="text/plain")
+
+    # Get AI response from Gemini
+    response_text = ""
+    for chunk in client.models.generate_content_stream(
+        model=model,
+        contents=contents,
+        config=generate_content_config,
+    ):
+        response_text += chunk.text
+    
+    return response_text
+def monitor_snort_alerts(alert_file_path):
+    """ Function to monitor Snort logs and upload new alerts to Gemini AI """
+    logging.info(f"Monitoring Snort alerts at: {alert_file_path}")
+    
+    if not os.path.exists(alert_file_path):
+        logging.error(f"Alert file not found: {alert_file_path}")
+        return
+    
+    last_position = 0
+    
+    while True:
+        try:
+            with open(alert_file_path, 'r') as alert_file:
+                alert_file.seek(last_position)
+                new_data = alert_file.read()
+                if new_data:
+                    print(f"{Fore.YELLOW}[+] New Snort Alert Detected...")
+                    logging.info("Uploading alert to Gemini...")
+                    ai_response = snort_assistant(new_data)
+                    if ai_response:
+                        print(f"{Fore.GREEN}[AI Response]\n{ai_response}\n")
+                    else:
+                        print(f"{Fore.RED}Failed to get AI response.")
+                last_position = alert_file.tell()
+        except Exception as e:
+            logging.error(f"Error reading alert file: {e}")
+        
+        time.sleep(5)  # Check every 5 seconds
+
 # Function for a loading animation
 def loading_animation(message):
     chars = "/—\|"
@@ -541,6 +653,7 @@ def main():
     parser.add_argument("-q", "--quiet", action="store_true", help="Quiet mode")
     parser.add_argument("-Q", "--queue-event", action="store_true", help="Include queue event")
     parser.add_argument("-r", "--pcap", dest="pcap_file", help="Read packets from pcap file")
+    parser.add_argument("--log", type=str, default="/var/log/snort/alert", help="Path to the Snort alert log file")
     args = parser.parse_args()
 
     snort_options = []
@@ -610,8 +723,13 @@ def main():
             search_snort_logs()
         elif choice == "11":
             manage_snort_rules()
+        elif choice == "12":
+            parser = argparse.ArgumentParser(description="Upload Snort Alerts to AI")
+            args = parser.parse_args()
+            monitor_snort_alerts(args.log)
         else:
             p(f"Unknown command: {choice}")
 
 if __name__ == "__main__":
     main()
+
