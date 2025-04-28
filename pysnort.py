@@ -347,6 +347,7 @@ def display_help():
         9. View Snort Logs - Displays the last 10 lines of the Snort log file.
         10. Search Snort Logs - Searches the Snort log file for a specific string.
         11. Rule Management - List, view, and delete Snort rules from local.rules. (Requires Root)
+        12. Snort AI Monintor :  monitor Snort logs and upload new alerts to Gemma AI
         0. Exit
 
     {Fore.BLUE}Additional Snort Command-Line Options:{Fore.RESET}
@@ -362,6 +363,7 @@ def display_help():
             -q : Quiet mode (added feature)
             -Q : Include queue event (added feature)
             -r <pcap_file> : Read packets from pcap file (added feature)
+            --log : monitor Snort logs and upload new alerts to Gemma AI
 
     {Fore.MAGENTA}Example Usage:{Fore.RESET}
         To start Snort in daemon mode, logging to /var/log/snort, use:
@@ -596,7 +598,7 @@ Let's begin. I'm awaiting the first alert.
     
     return response_text
 def monitor_snort_alerts(alert_file_path):
-    """ Function to monitor Snort logs and upload new alerts to Gemini AI """
+    """ Function to monitor Snort logs and upload new alerts to Gemma AI """
     logging.info(f"Monitoring Snort alerts at: {alert_file_path}")
     
     if not os.path.exists(alert_file_path):
@@ -612,7 +614,7 @@ def monitor_snort_alerts(alert_file_path):
                 new_data = alert_file.read()
                 if new_data:
                     print(f"{Fore.YELLOW}[+] New Snort Alert Detected...")
-                    logging.info("Uploading alert to Gemini...")
+                    logging.info("Uploading alert to Gemma...")
                     ai_response = snort_assistant(new_data)
                     if ai_response:
                         print(f"{Fore.GREEN}[AI Response]\n{ai_response}\n")
@@ -693,6 +695,8 @@ def main():
         snort_options.append("-Q")
     if args.pcap_file:
         snort_options.extend(["-r", args.pcap_file])
+    if args.log:
+        snort_options.extend(["--log"])
 
     while True:
         display_help()
